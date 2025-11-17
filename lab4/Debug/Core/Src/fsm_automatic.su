@@ -1,0 +1,4 @@
+fsm_automatic.c:12:6:fsm_automatic_run	8	static
+fsm_automatic.c:104:6:modeChangeCheck	8	static
+fsm_automatic.c:116:6:countdownUpdate	16	static
+fsm_automatic.c:125:6:resetCountdown	4	static

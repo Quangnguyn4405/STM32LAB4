@@ -22,6 +22,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "software_timer.h"
+#include "global.h"
 
 /* USER CODE END Includes */
 
@@ -43,19 +45,149 @@
 TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
+// Task IDs
+uint32_t taskID_ReadButtons;
+uint32_t taskID_RunFSM;
+uint32_t taskID_Update7SEG;
+uint32_t taskID_TimerRun;
+uint32_t taskID_TestLED;
 
+// Demo task IDs
+uint32_t taskID_500ms;
+uint32_t taskID_1000ms;
+uint32_t taskID_1500ms;
+uint32_t taskID_2000ms;
+uint32_t taskID_2500ms;
+
+
+int SEG_index = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
+// Task function prototypes
+void Task_ReadButtons(void);
+void Task_RunFSM(void);
+void Task_Update7SEG(void);
+void Task_TimerRun(void);
+void Task_TestLED(void);
 
+// Demo task prototypes
+void Task_500ms(void);
+void Task_1000ms(void);
+void Task_1500ms(void);
+void Task_2000ms(void);
+void Task_2500ms(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/* ========== TASK FUNCTIONS ========== */
+
+/**
+ * Task đọc nút nhấn - chạy mỗi 10ms
+ */
+void Task_ReadButtons(void) {
+    getKeyInput();
+}
+
+/**
+ * Task chạy FSM - chạy mỗi 10ms
+ */
+void Task_RunFSM(void) {
+    // Chạy FSM automatic hoặc manual tùy theo status
+    if (status == INIT || status == RED_GREEN || status == RED_AMBER ||
+        status == GREEN_RED || status == AMBER_RED) {
+        fsm_automatic_run();
+    } else if (status == RED_MODE || status == AMBER_MODE || status == GREEN_MODE) {
+        fsm_manual_run();
+    }
+}
+
+/**
+ * Task update 7-segment - chạy mỗi 25ms (làm tròn thành 30ms = 3 tick)
+ */
+void Task_Update7SEG(void) {
+    // Reset index mỗi chu kỳ
+    if (SEG_index == 0 || SEG_index == 2) {
+        clearENs();
+    }
+
+    // Update từng 7-segment
+    update7SEG(SEG_index);
+
+    // Tăng index
+    SEG_index++;
+    if (SEG_index >= 4) {
+        SEG_index = 0;
+    }
+}
+
+/**
+ * Task chạy software timer - chạy mỗi 10ms
+ */
+void Task_TimerRun(void) {
+    timerRun();
+}
+
+/**
+ * Task test LED - chạy mỗi 1000ms
+ */
+void Task_TestLED(void) {
+    HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+}
+
+/* ========== DEMO TASKS (5 tasks với chu kỳ khác nhau) ========== */
+
+/**
+ * Demo Task 1: Chạy mỗi 500ms
+ */
+void Task_500ms(void) {
+    static uint32_t counter = 0;
+    counter++;
+    // Có thể toggle một LED khác hoặc thực hiện action khác
+    // HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
+}
+
+/**
+ * Demo Task 2: Chạy mỗi 1000ms
+ */
+void Task_1000ms(void) {
+    static uint32_t counter = 0;
+    counter++;
+    // HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
+}
+
+/**
+ * Demo Task 3: Chạy mỗi 1500ms
+ */
+void Task_1500ms(void) {
+    static uint32_t counter = 0;
+    counter++;
+    // HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_2);
+}
+
+/**
+ * Demo Task 4: Chạy mỗi 2000ms
+ */
+void Task_2000ms(void) {
+    static uint32_t counter = 0;
+    counter++;
+    // HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_3);
+}
+
+/**
+ * Demo Task 5: Chạy mỗi 2500ms
+ */
+void Task_2500ms(void) {
+    static uint32_t counter = 0;
+    counter++;
+    // HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_4);
+}
 
 /* USER CODE END 0 */
 
@@ -86,9 +218,46 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_GPIO_Init();
   MX_TIM2_Init();
+  MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
+  // Khởi động Timer 2 với interrupt (10ms)
+  HAL_TIM_Base_Start_IT(&htim2);
+
+  // Khởi tạo scheduler
+  SCH_Init();
+
+  // ========== THÊM CÁC TASK HỆ THỐNG ==========
+
+  // Task đọc button - chạy mỗi 10ms (1 tick)
+  taskID_ReadButtons = SCH_Add_Task(Task_ReadButtons, 0, 1);
+
+  // Task chạy FSM - chạy mỗi 10ms (1 tick)
+  taskID_RunFSM = SCH_Add_Task(Task_RunFSM, 0, 1);
+
+  // Task update 7-segment - chạy mỗi 30ms (3 ticks)
+  taskID_Update7SEG = SCH_Add_Task(Task_Update7SEG, 0, 3);
+
+  // Task timer run - chạy mỗi 10ms (1 tick)
+  taskID_TimerRun = SCH_Add_Task(Task_TimerRun, 0, 1);
+
+  // Task test LED - chạy mỗi 1000ms (100 ticks)
+  taskID_TestLED = SCH_Add_Task(Task_TestLED, 0, 100);
+
+  // Task 1: 500ms = 50 ticks
+  taskID_500ms = SCH_Add_Task(Task_500ms, 0, 50);
+
+  // Task 2: 1000ms = 100 ticks
+  taskID_1000ms = SCH_Add_Task(Task_1000ms, 10, 100);
+
+  // Task 3: 1500ms = 150 ticks
+  taskID_1500ms = SCH_Add_Task(Task_1500ms, 20, 150);
+
+  // Task 4: 2000ms = 200 ticks
+  taskID_2000ms = SCH_Add_Task(Task_2000ms, 30, 200);
+
+  // Task 5: 2500ms = 250 ticks
+  taskID_2500ms = SCH_Add_Task(Task_2500ms, 40, 250);
 
   /* USER CODE END 2 */
 
@@ -96,6 +265,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    SCH_Dispatch_Tasks();
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -157,9 +328,9 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 7999;
+  htim2.Init.Prescaler = 7999;  // 8MHz/8000 = 1kHz
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 9;
+  htim2.Init.Period = 9;         // 1kHz/10 = 100Hz = 10ms
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -208,16 +379,16 @@ static void MX_GPIO_Init(void)
                           |SEG1_4_Pin|SEG1_5_Pin|SEG1_6_Pin|SEG2_0_Pin
                           |SEG2_1_Pin|SEG2_2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : BUTTON___Pin */
-  GPIO_InitStruct.Pin = BUTTON___Pin;
+  /*Configure GPIO pin : BUTTON_0_Pin */
+  GPIO_InitStruct.Pin = BUTTON_0_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(BUTTON___GPIO_Port, &GPIO_InitStruct);
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(BUTTON_0_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : BUTTON_1_Pin BUTTON_2_Pin */
   GPIO_InitStruct.Pin = BUTTON_1_Pin|BUTTON_2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LED_RED_Pin RED_1_Pin AMBER_1_Pin GREEN_1_Pin
@@ -247,7 +418,14 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+/**
+ * Timer interrupt callback - Gọi SCH_Update mỗi 10ms
+ */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+    if (htim->Instance == TIM2) {
+        SCH_Update();
+    }
+}
 /* USER CODE END 4 */
 
 /**

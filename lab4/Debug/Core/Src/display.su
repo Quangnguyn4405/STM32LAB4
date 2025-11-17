@@ -1,0 +1,13 @@
+display.c:11:6:clearAllLEDs	8	static
+display.c:15:6:setLEDs	16	static
+display.c:35:6:blinkLEDs	16	static
+display.c:49:6:display7SEG	16	static
+display.c:129:6:update7SEG	16	static
+display.c:156:6:clearENs	8	static
+display.c:160:6:clear7SEG	8	static
+display.c:167:6:clear7SEG_1	8	static
+display.c:172:6:clear7SEG_2	8	static
+display.c:177:6:turnAll7SEG	8	static
+display.c:184:6:turnAll7SEG_1	8	static
+display.c:189:6:turnAll7SEG_2	8	static
+display.c:194:6:update_SevenSEGbuffer	16	static
