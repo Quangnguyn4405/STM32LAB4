@@ -86,8 +86,6 @@ void Task_2500ms(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-/* ========== TASK FUNCTIONS ========== */
-
 /**
  * Task đọc nút nhấn - chạy mỗi 10ms
  */
@@ -99,7 +97,6 @@ void Task_ReadButtons(void) {
  * Task chạy FSM - chạy mỗi 10ms
  */
 void Task_RunFSM(void) {
-    // Chạy FSM automatic hoặc manual tùy theo status
     if (status == INIT || status == RED_GREEN || status == RED_AMBER ||
         status == GREEN_RED || status == AMBER_RED) {
         fsm_automatic_run();
@@ -109,18 +106,16 @@ void Task_RunFSM(void) {
 }
 
 /**
- * Task update 7-segment - chạy mỗi 25ms (làm tròn thành 30ms = 3 tick)
+ * Task update 7-segment
  */
 void Task_Update7SEG(void) {
-    // Reset index mỗi chu kỳ
+    // Reset index
     if (SEG_index == 0 || SEG_index == 2) {
         clearENs();
     }
-
-    // Update từng 7-segment
+    // Update
     update7SEG(SEG_index);
 
-    // Tăng index
     SEG_index++;
     if (SEG_index >= 4) {
         SEG_index = 0;
@@ -128,20 +123,18 @@ void Task_Update7SEG(void) {
 }
 
 /**
- * Task chạy software timer - chạy mỗi 10ms
+ * Task chạy software timer
  */
 void Task_TimerRun(void) {
     timerRun();
 }
 
 /**
- * Task test LED - chạy mỗi 1000ms
+ * Task test LED
  */
 void Task_TestLED(void) {
     HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
 }
-
-/* ========== DEMO TASKS (5 tasks với chu kỳ khác nhau) ========== */
 
 /**
  * Demo Task 1: Chạy mỗi 500ms
@@ -149,7 +142,6 @@ void Task_TestLED(void) {
 void Task_500ms(void) {
     static uint32_t counter = 0;
     counter++;
-    // Có thể toggle một LED khác hoặc thực hiện action khác
     // HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
 }
 
@@ -221,13 +213,10 @@ int main(void)
   MX_TIM2_Init();
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
-  // Khởi động Timer 2 với interrupt (10ms)
   HAL_TIM_Base_Start_IT(&htim2);
 
   // Khởi tạo scheduler
   SCH_Init();
-
-  // ========== THÊM CÁC TASK HỆ THỐNG ==========
 
   // Task đọc button - chạy mỗi 10ms (1 tick)
   taskID_ReadButtons = SCH_Add_Task(Task_ReadButtons, 0, 1);
