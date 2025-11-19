@@ -10,20 +10,21 @@
 
 #include "main.h"
 
-// Cấu hình scheduler
 #define SCH_MAX_TASKS           10
 #define NO_TASK_ID              0
 
-// Cấu trúc task
-typedef struct {
+typedef struct sTask {
     void (*pTask)(void);
     uint32_t Delay;
     uint32_t Period;
     uint8_t RunMe;
     uint32_t TaskID;
+    struct sTask* pNext;
 } sTask;
 
-// Các hàm scheduler
+extern sTask* SCH_listHead;
+extern uint32_t SCH_taskID_counter;
+
 void SCH_Init(void);
 void SCH_Update(void);
 void SCH_Dispatch_Tasks(void);

@@ -218,35 +218,35 @@ int main(void)
   // Khởi tạo scheduler
   SCH_Init();
 
-  // Task đọc button - chạy mỗi 10ms (1 tick)
+  // Task đọc button - chạy mỗi 100ms (1 tick)
   taskID_ReadButtons = SCH_Add_Task(Task_ReadButtons, 0, 1);
 
-  // Task chạy FSM - chạy mỗi 10ms (1 tick)
+  // Task chạy FSM - chạy mỗi 100ms (1 tick)
   taskID_RunFSM = SCH_Add_Task(Task_RunFSM, 0, 1);
 
-  // Task update 7-segment - chạy mỗi 30ms (3 ticks)
-  taskID_Update7SEG = SCH_Add_Task(Task_Update7SEG, 0, 3);
+  // Task update 7-segment - chạy mỗi 100ms (1 ticks)
+  taskID_Update7SEG = SCH_Add_Task(Task_Update7SEG, 0, 1);
 
   // Task timer run - chạy mỗi 10ms (1 tick)
   taskID_TimerRun = SCH_Add_Task(Task_TimerRun, 0, 1);
 
-  // Task test LED - chạy mỗi 1000ms (100 ticks)
-  taskID_TestLED = SCH_Add_Task(Task_TestLED, 0, 100);
+  // Task test LED - chạy mỗi 1000ms (10 ticks)
+  taskID_TestLED = SCH_Add_Task(Task_TestLED, 0, 10);
 
-  // Task 1: 500ms = 50 ticks
-  taskID_500ms = SCH_Add_Task(Task_500ms, 0, 50);
+  // Task 1: 500ms = 5 ticks
+  taskID_500ms = SCH_Add_Task(Task_500ms, 0, 5);
 
-  // Task 2: 1000ms = 100 ticks
-  taskID_1000ms = SCH_Add_Task(Task_1000ms, 10, 100);
+  // Task 2: 1000ms = 10 ticks
+  taskID_1000ms = SCH_Add_Task(Task_1000ms, 1, 10);
 
-  // Task 3: 1500ms = 150 ticks
-  taskID_1500ms = SCH_Add_Task(Task_1500ms, 20, 150);
+  // Task 3: 1500ms = 15 ticks
+  taskID_1500ms = SCH_Add_Task(Task_1500ms, 2, 15);
 
-  // Task 4: 2000ms = 200 ticks
-  taskID_2000ms = SCH_Add_Task(Task_2000ms, 30, 200);
+  // Task 4: 2000ms = 20 ticks
+  taskID_2000ms = SCH_Add_Task(Task_2000ms, 3, 20);
 
-  // Task 5: 2500ms = 250 ticks
-  taskID_2500ms = SCH_Add_Task(Task_2500ms, 40, 250);
+  // Task 5: 2500ms = 25 ticks
+  taskID_2500ms = SCH_Add_Task(Task_2500ms, 4, 25);
 
   /* USER CODE END 2 */
 
@@ -319,7 +319,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 7999;  // 8MHz/8000 = 1kHz
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 9;         // 1kHz/10 = 100Hz = 10ms
+  htim2.Init.Period = 99;         // 1kHz/10 = 100Hz = 10ms
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
